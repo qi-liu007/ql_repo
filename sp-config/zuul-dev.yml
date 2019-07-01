@@ -1,37 +1,43 @@
 spring:
   application:
-    name: order-service
+    name: zuul
     
-#server:
-#  port: 8201
+server:
+  port: 3001
   
 eureka:
   client:
     service-url:
       defaultZone: http://eureka1:2001/eureka, http://eureka2:2002/eureka
-      
-#启用hystrix
-feign:
-  hystrix:
-    enabled: true
-#暴露监控端点    
+
+#zuul 路由配置可以省略，缺省以服务 id 作为访问路径   默认的,从eureka拉取的注册信息
+#zuul:
+#  routes:
+#    item-service: /item-service/**
+#    user-service: /user-service/**
+#    order-service: /order-service/**
+
+#开启重试
+zuul:
+  retryable: true
+#重试设置,默认的可以省略,也可以自定义设置  
+ribbon:
+  ConnectTimeout: 1000
+  ReadTimeout: 1000
+  MaxAutoRetriesNextServer: 1
+  MaxAutoRetries: 1  
+
+#配置  hystrix断路器
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 500
+#暴露 hystrix.stream 监控端点
 management:
   endpoints:
     web:
       exposure:
-        include: hystrix.stream  
-
-#配置order集群
----
-spring:
-  profiles: order1
-  
-server:
-  port: 8201
-  
----
-spring:
-  profiles: order2
-  
-server:
-  port: 8202            
+        include: hystrix.stream              
